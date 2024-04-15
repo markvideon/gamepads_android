@@ -29,7 +29,12 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler {
     }
   }
 
+  fun ayo() {
+    
+  }
+
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+
     channel.setMethodCallHandler(null)
   }
 }

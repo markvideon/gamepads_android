@@ -47,6 +47,11 @@ android {
 
     defaultConfig {
         minSdkVersion 19
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared'
+            }
+        }
     }
 
     dependencies {
@@ -65,4 +70,18 @@ android {
             }
         }
     }
+
+    externalNativeBuild {
+        cmake {
+            path 'src/main/cpp/CMakeLists.txt'
+        }
+    }
+
+    buildFeatures {
+        prefab true
+    }
+}
+
+dependencies {
+    implementation "androidx.games:games-controller:2.0.1"
 }
