@@ -27,7 +27,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
 add_library(gamepads_android SHARED
         main.cpp)
 
-target_include_directories(game PUBLIC
+target_include_directories(gamepads_android PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_compile_options(gamepads_android
