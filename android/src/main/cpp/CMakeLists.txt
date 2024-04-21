@@ -19,6 +19,9 @@ project(gamepads_android)
 
 find_package(games-controller REQUIRED CONFIG)
 
+find_library(log-lib log)
+find_library(android-lib android)
+
 # Set common compiler options
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
@@ -42,4 +45,6 @@ target_compile_options(gamepads_android
 
 # add lib dependencies
 target_link_libraries(gamepads_android
-        games-controller::paddleboat_static)
+        games-controller::paddleboat_static
+        ${log-lib}
+        ${android-lib})
