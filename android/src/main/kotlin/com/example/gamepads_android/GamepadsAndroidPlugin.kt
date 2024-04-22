@@ -23,6 +23,10 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler {
   external fun destroy();
   external fun init(): Int;
 
+  external fun setControllerStatusCallback();
+  external fun setMotionDataCallback();
+  external fun update();
+
   /*
   external fun addControllerRemapData(const Int remapTableEntryCount);
   external fun addControllerRemapDataFromFd();
@@ -44,13 +48,10 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler {
   external fun processInputEvent();
   external fun setBackButtonConsumed();
   external fun setControllerLight();
-  external fun setControllerStatusCallback();
   external fun setControllerVibrationData();
-  external fun setMotionDataCallback();
   external fun setMotionDataCallbackWithIntegratedFlags();
   external fun setMouseStatusCallback();
   external fun setPhysicalKeyboardStatusCallback();
-  external fun update();
   */
 
   fun listGamepads(): List<Map<String, String>>  {
@@ -63,14 +64,22 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler {
     );
   }
 
+  fun mockGamepadEvent() : Map<String, Any> {
+    return mapOf(
+            "gamepadId" to "mockId",
+            "time" to 0,
+            "type" to "analog",
+            "key" to "mockKey",
+            "value" to 0.0
+    )
+  }
+
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "xyz.luan/gamepads")
     channel.setMethodCallHandler(this)
-    init()
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-    destroy()
     channel.setMethodCallHandler(null)
   }
 
