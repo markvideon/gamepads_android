@@ -1,27 +1,29 @@
 package com.example.gamepads_android
 
 import androidx.annotation.NonNull
-
+import androidx.annotation.Keep
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import android.util.Log
 
 /** GamepadsAndroidPlugin */
 // Get Context: FlutterPlugin.FlutterPluginBinding.getApplicationContext();
+@Keep
 class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler {
   private lateinit var channel : MethodChannel
 
-  companion object {
-    init {
-        java.lang.System.loadLibrary("c++_shared")
-        java.lang.System.loadLibrary("gamepads_android")
-    }
+  init {
+      Log.i("GamepadsAndroidPlugin", "before load library")
+      System.loadLibrary("c++_shared")
+      System.loadLibrary("gamepads_android")
+      Log.i("GamepadsAndroidPlugin", "after load library")
   }
 
   external fun destroy();
-  external fun init(): Int;
+  external fun init();
 
   external fun setControllerStatusCallback();
   external fun setMotionDataCallback();
@@ -55,16 +57,19 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler {
   */
 
   fun listGamepads(): List<Map<String, String>>  {
+    Log.i("GamepadsAndroidPlugin", "listGamepads()")
     return mockListGamepads()
   }
 
   fun mockListGamepads() : List<Map<String, String>> {
+    Log.i("GamepadsAndroidPlugin", "mockListGamepads()")
     return listOf(
         mapOf("id" to "mockId", "name" to "mockName")
     );
   }
 
   fun mockGamepadEvent() : Map<String, Any> {
+    Log.i("GamepadsAndroidPlugin", "mockGamepadEvent()")
     return mapOf(
             "gamepadId" to "mockId",
             "time" to 0,
@@ -77,6 +82,8 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler {
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "xyz.luan/gamepads")
     channel.setMethodCallHandler(this)
+
+    init()
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
