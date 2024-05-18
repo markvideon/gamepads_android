@@ -16,13 +16,13 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var channel : MethodChannel
   private val TAG = "GamepadsAndroidPlugin"
-  private val gamepads = GamepadsListener()
+  private val gamepads = ConnectionListener()
+  private val events = EventListener()
 
   private fun listGamepads(): List<Map<String, String>>  {
     val results = mutableListOf<Map<String, String>>()
@@ -36,58 +36,16 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     return results
   }
 
-  private fun mockGamepadEvent() : Map<String, Any> {
-    return mapOf(
-      "gamepadId" to "mockId",
-      "time" to 0,
-      "type" to "analog",
-      "key" to "mockKey",
-      "value" to 0.0
-    )
-  }
-
-  override fun onAttachedToActivity(activityPluginBinding: ActivityPluginBinding) {
-    onAttachedToActivityShared(activityPluginBinding.activity)
-  }
-
-  fun onAttachedToActivityShared(activity: Activity) {
-    val compatibleActivity = activity as GamepadsCompatibleActivity
-    compatibleActivity.registerInputDeviceListener(gamepads, null)
-    compatibleActivity.registerKeyEventHandler({ it: KeyEvent -> onKeyEvent(it) })
-    compatibleActivity.registerMotionEventHandler({ it: MotionEvent -> onMotionEvent(it) })
-  }
-
+  // FlutterPlugin
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    Log.i(TAG, "onAttachedToEngine")
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "xyz.luan/gamepads")
     channel.setMethodCallHandler(this)
-  }
-
-  override fun onDetachedFromActivity() {
-    // No-op
-  }
-
-  override fun onDetachedFromActivityForConfigChanges() {
-    // No-op
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
   }
-
-  private fun onKeyEvent(keyEvent: KeyEvent): Boolean {
-    Log.i(TAG, "onKeyEvent")
-    val arguments = mapOf(
-      "gamepadId" to keyEvent.getDeviceId().toString(),
-      "time" to keyEvent.getEventTime(),
-      "type" to "button",
-      "key" to KeyEvent.keyCodeToString(keyEvent.getKeyCode()),
-      "value" to keyEvent.getAction().toDouble()
-    )
-    channel.invokeMethod("onGamepadEvent", arguments)
-    return true
-  }
-
-
 
   override fun onMethodCall(call: MethodCall, result: Result) {
     if (call.method == "listGamepads") {
@@ -97,32 +55,25 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     }
   }
 
-  private fun onMotionEvent(motionEvent: MotionEvent): Boolean {
-    reportAxis(motionEvent, MotionEvent.AXIS_X)
-    reportAxis(motionEvent, MotionEvent.AXIS_Y, true)
-
-    reportAxis(motionEvent, MotionEvent.AXIS_RX)
-    reportAxis(motionEvent, MotionEvent.AXIS_RY, true)
-
-    reportAxis(motionEvent, MotionEvent.AXIS_HAT_X)
-    reportAxis(motionEvent, MotionEvent.AXIS_HAT_Y, true)
-
-    reportAxis(motionEvent, MotionEvent.AXIS_LTRIGGER)
-    reportAxis(motionEvent, MotionEvent.AXIS_RTRIGGER)
-
-    return true
+  // Activity Aware
+  override fun onAttachedToActivity(activityPluginBinding: ActivityPluginBinding) {
+    onAttachedToActivityShared(activityPluginBinding.activity)
   }
 
-  fun reportAxis(motionEvent: MotionEvent, axis: Int, invert: boolean = false) {
-    val multiplier = invert ? -1 : 1
-    val arguments = mapOf(
-      "gamepadId" to motionEvent.getDeviceId().toString(),
-      "time" to motionEvent.getEventTime(),
-      "type" to "analog",
-      "key" to MotionEvent.axisToString(axis),
-      "value" to (motionEvent.getAxisValue(axis) * multiplier)
-    )
-    channel.invokeMethod("onGamepadEvent", arguments)
+  fun onAttachedToActivityShared(activity: Activity) {
+    Log.i(TAG, "onAttachedToActivityShared")
+    val compatibleActivity = activity as GamepadsCompatibleActivity
+    compatibleActivity.registerInputDeviceListener(gamepads, null)
+    compatibleActivity.registerKeyEventHandler({ it: KeyEvent -> events.onKeyEvent(it, channel) })
+    compatibleActivity.registerMotionEventHandler({ it: MotionEvent -> events.onMotionEvent(it, channel) })
+  }
+
+  override fun onDetachedFromActivity() {
+    // No-op
+  }
+
+  override fun onDetachedFromActivityForConfigChanges() {
+    // No-op
   }
 
   override fun onReattachedToActivityForConfigChanges(activityPluginBinding: ActivityPluginBinding) {
