@@ -98,26 +98,31 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   }
 
   private fun onMotionEvent(motionEvent: MotionEvent): Boolean {
-    // Y-value is inverted for consistency with other platforms.
-    val yValue = motionEvent.getAxisValue(MotionEvent.AXIS_Y) * -1;
+    reportAxis(motionEvent, MotionEvent.AXIS_X)
+    reportAxis(motionEvent, MotionEvent.AXIS_Y, true)
 
-    val xArguments = mapOf(
-      "gamepadId" to motionEvent.getDeviceId().toString(),
-      "time" to motionEvent.getEventTime(),
-      "type" to "analog",
-      "key" to MotionEvent.axisToString(MotionEvent.AXIS_X),
-      "value" to motionEvent.getAxisValue(MotionEvent.AXIS_X)
-    )
-    val yArguments = mapOf(
-      "gamepadId" to motionEvent.getDeviceId().toString(),
-      "time" to motionEvent.getEventTime(),
-      "type" to "analog",
-      "key" to MotionEvent.axisToString(MotionEvent.AXIS_Y),
-      "value" to yValue
-    )
-    channel.invokeMethod("onGamepadEvent", xArguments)
-    channel.invokeMethod("onGamepadEvent", yArguments)
+    reportAxis(motionEvent, MotionEvent.AXIS_RX)
+    reportAxis(motionEvent, MotionEvent.AXIS_RY, true)
+
+    reportAxis(motionEvent, MotionEvent.AXIS_HAT_X)
+    reportAxis(motionEvent, MotionEvent.AXIS_HAT_Y, true)
+
+    reportAxis(motionEvent, MotionEvent.AXIS_LTRIGGER)
+    reportAxis(motionEvent, MotionEvent.AXIS_RTRIGGER)
+
     return true
+  }
+
+  fun reportAxis(motionEvent: MotionEvent, axis: Int, invert: boolean = false) {
+    val multiplier = invert ? -1 : 1
+    val arguments = mapOf(
+      "gamepadId" to motionEvent.getDeviceId().toString(),
+      "time" to motionEvent.getEventTime(),
+      "type" to "analog",
+      "key" to MotionEvent.axisToString(axis),
+      "value" to (motionEvent.getAxisValue(axis) * multiplier)
+    )
+    channel.invokeMethod("onGamepadEvent", arguments)
   }
 
   override fun onReattachedToActivityForConfigChanges(activityPluginBinding: ActivityPluginBinding) {

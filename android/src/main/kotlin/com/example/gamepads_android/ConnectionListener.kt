@@ -4,10 +4,10 @@ import android.hardware.input.InputManager
 import android.util.Log
 import android.view.InputDevice
 
-class GamepadsListener: InputManager.InputDeviceListener {
+class ConnectionListener: InputManager.InputDeviceListener {
     private val devicesLookup: MutableMap<Int, InputDevice> = mutableMapOf()
 
-    private val TAG = "GamepadsListener"
+    private val TAG = "ConnectionListener"
 
     init {
         getGameControllerIds()
