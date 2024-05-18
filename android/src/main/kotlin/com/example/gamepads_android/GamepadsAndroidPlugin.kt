@@ -98,7 +98,8 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   }
 
   private fun onMotionEvent(motionEvent: MotionEvent): Boolean {
-    Log.i(TAG, "onMotionEvent")
+    // Y-value is inverted for consistency with other platforms.
+    val yValue = motionEvent.getAxisValue(MotionEvent.AXIS_Y) * -1;
 
     val xArguments = mapOf(
       "gamepadId" to motionEvent.getDeviceId().toString(),
@@ -112,7 +113,7 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       "time" to motionEvent.getEventTime(),
       "type" to "analog",
       "key" to MotionEvent.axisToString(MotionEvent.AXIS_Y),
-      "value" to motionEvent.getAxisValue(MotionEvent.AXIS_Y)
+      "value" to yValue
     )
     channel.invokeMethod("onGamepadEvent", xArguments)
     channel.invokeMethod("onGamepadEvent", yArguments)
