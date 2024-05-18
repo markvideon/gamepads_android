@@ -2,8 +2,12 @@ package com.example.gamepads_android
 
 import androidx.annotation.NonNull
 import android.app.Activity
+import android.content.Context
+import android.hardware.input.InputManager
 import android.util.Log
 import android.view.InputDevice
+import android.view.KeyEvent
+import android.view.MotionEvent
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -15,52 +19,31 @@ import io.flutter.plugin.common.MethodChannel.Result
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
-
 class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var channel : MethodChannel
   private val TAG = "GamepadsAndroidPlugin"
-
-  private lateinit var thread: Thread
+  private val gamepads = GamepadsListener()
 
   private fun listGamepads(): List<Map<String, String>>  {
-    return mockListGamepads()
-  }
+    val results = mutableListOf<Map<String, String>>()
+    gamepads.getDevices().forEach({
+      results.add(mapOf(
+        "id" to it.key.toString(),
+        "name" to it.value.name
+      ))
+    })
 
-  private fun mockListGamepads() : List<Map<String, String>> {
-    return listOf(
-        mapOf("id" to "mockId", "name" to "mockName")
-    );
+    return results
   }
 
   private fun mockGamepadEvent() : Map<String, Any> {
     return mapOf(
-            "gamepadId" to "mockId",
-            "time" to 0,
-            "type" to "analog",
-            "key" to "mockKey",
-            "value" to 0.0
+      "gamepadId" to "mockId",
+      "time" to 0,
+      "type" to "analog",
+      "key" to "mockKey",
+      "value" to 0.0
     )
-  }
-
-  // https://developer.android.com/develop/ui/views/touch-and-input/game-controllers/controller-input#input
-  fun getGameControllerIds(): List<Int> {
-    val gameControllerDeviceIds = mutableListOf<Int>()
-    val deviceIds = InputDevice.getDeviceIds()
-    deviceIds.forEach { deviceId ->
-      InputDevice.getDevice(deviceId).apply {
-        if (this != null) {
-          // Verify that the device has gamepad buttons, control sticks, or both.
-          if (sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
-                  || sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK) {
-            // This device is a game controller. Store its device ID.
-            gameControllerDeviceIds
-                    .takeIf { !it.contains(deviceId) }
-                    ?.add(deviceId)
-          }
-        }
-      }
-    }
-    return gameControllerDeviceIds
   }
 
   override fun onAttachedToActivity(activityPluginBinding: ActivityPluginBinding) {
@@ -68,7 +51,10 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   }
 
   fun onAttachedToActivityShared(activity: Activity) {
-
+    val compatibleActivity = activity as GamepadsCompatibleActivity
+    compatibleActivity.registerInputDeviceListener(gamepads, null)
+    compatibleActivity.registerKeyEventHandler({ it: KeyEvent -> onKeyEvent(it) })
+    compatibleActivity.registerMotionEventHandler({ it: MotionEvent -> onMotionEvent(it) })
   }
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -77,20 +63,31 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   }
 
   override fun onDetachedFromActivity() {
-    onDetachedFromActivityShared()
+    // No-op
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
-    onDetachedFromActivityShared()
-  }
-
-  fun onDetachedFromActivityShared() {
-
+    // No-op
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
   }
+
+  private fun onKeyEvent(keyEvent: KeyEvent): Boolean {
+    Log.i(TAG, "onKeyEvent")
+    val arguments = mapOf(
+      "gamepadId" to keyEvent.getDeviceId().toString(),
+      "time" to keyEvent.getEventTime(),
+      "type" to "button",
+      "key" to KeyEvent.keyCodeToString(keyEvent.getKeyCode()),
+      "value" to keyEvent.getAction().toDouble()
+    )
+    channel.invokeMethod("onGamepadEvent", arguments)
+    return true
+  }
+
+
 
   override fun onMethodCall(call: MethodCall, result: Result) {
     if (call.method == "listGamepads") {
@@ -98,6 +95,28 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     } else {
       result.notImplemented()
     }
+  }
+
+  private fun onMotionEvent(motionEvent: MotionEvent): Boolean {
+    Log.i(TAG, "onMotionEvent")
+
+    val xArguments = mapOf(
+      "gamepadId" to motionEvent.getDeviceId().toString(),
+      "time" to motionEvent.getEventTime(),
+      "type" to "analog",
+      "key" to MotionEvent.axisToString(MotionEvent.AXIS_X),
+      "value" to motionEvent.getAxisValue(MotionEvent.AXIS_X)
+    )
+    val yArguments = mapOf(
+      "gamepadId" to motionEvent.getDeviceId().toString(),
+      "time" to motionEvent.getEventTime(),
+      "type" to "analog",
+      "key" to MotionEvent.axisToString(MotionEvent.AXIS_Y),
+      "value" to motionEvent.getAxisValue(MotionEvent.AXIS_Y)
+    )
+    channel.invokeMethod("onGamepadEvent", xArguments)
+    channel.invokeMethod("onGamepadEvent", yArguments)
+    return true
   }
 
   override fun onReattachedToActivityForConfigChanges(activityPluginBinding: ActivityPluginBinding) {
