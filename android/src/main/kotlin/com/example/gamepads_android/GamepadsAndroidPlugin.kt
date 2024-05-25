@@ -21,9 +21,9 @@ import kotlin.concurrent.thread
 class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var channel : MethodChannel
   private lateinit var gamepads : ConnectionListener
+  private lateinit var events : EventListener
 
   private val TAG = "GamepadsAndroidPlugin"
-  private val events = EventListener()
 
   private fun listGamepads(): List<Map<String, String>>  {
     val results = mutableListOf<Map<String, String>>()
@@ -63,6 +63,7 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   fun onAttachedToActivityShared(activity: Activity) {
     val compatibleActivity = activity as GamepadsCompatibleActivity
     gamepads = ConnectionListener({ it: InputDevice -> compatibleActivity.isGamepadsInputDevice(it) })
+    events = EventListener({ it: Int -> gamepads.containsKey(it)})
     compatibleActivity.registerInputDeviceListener(gamepads, null)
     compatibleActivity.registerKeyEventHandler({ it: KeyEvent -> events.onKeyEvent(it, channel) })
     compatibleActivity.registerMotionEventHandler({ it: MotionEvent -> events.onMotionEvent(it, channel) })

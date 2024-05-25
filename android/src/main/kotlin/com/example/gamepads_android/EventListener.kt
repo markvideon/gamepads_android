@@ -1,13 +1,15 @@
 package com.example.gamepads_android
 
 import android.util.Log
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+
 import io.flutter.plugin.common.MethodChannel
 
 class SupportedAxis(val axisId: Int, val invert: Boolean = false)
 
-class EventListener {
+class EventListener(val isOwnedInputDevice: (deviceId: Int) -> Boolean) {
     private val TAG = "EventListener"
     private val axisEpisilon = 0.001
     private val lastAxisValue = mutableMapOf<Int, Float>()
@@ -27,6 +29,9 @@ class EventListener {
     )
 
     fun onKeyEvent(keyEvent: KeyEvent, channel: MethodChannel): Boolean {
+        if (!isOwnedInputDevice(keyEvent.deviceId)) {
+            return false
+        }
         val arguments = mapOf(
             "gamepadId" to keyEvent.getDeviceId().toString(),
             "time" to keyEvent.getEventTime(),
@@ -39,6 +44,9 @@ class EventListener {
     }
 
     fun onMotionEvent(motionEvent: MotionEvent, channel: MethodChannel): Boolean {
+        if (!isOwnedInputDevice(motionEvent.deviceId)) {
+            return false
+        }
         supportedAxes.forEach {
             reportAxis(motionEvent, channel, it.axisId, it.invert)
         }

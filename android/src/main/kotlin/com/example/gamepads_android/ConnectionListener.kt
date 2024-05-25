@@ -6,7 +6,6 @@ import android.view.InputDevice
 
 class ConnectionListener(val isGamepadsInputDevice: (device: InputDevice) -> Boolean): InputManager.InputDeviceListener {
     private val devicesLookup: MutableMap<Int, InputDevice> = mutableMapOf()
-
     private val TAG = "ConnectionListener"
 
     init {
@@ -32,6 +31,10 @@ class ConnectionListener(val isGamepadsInputDevice: (device: InputDevice) -> Boo
                 }
             }
         }
+    }
+
+    fun containsKey(deviceId: Int): Boolean {
+        return devicesLookup.containsKey(deviceId)
     }
 
     override fun onInputDeviceAdded(deviceId: Int) {
