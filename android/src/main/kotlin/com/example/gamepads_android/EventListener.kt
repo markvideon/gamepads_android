@@ -14,11 +14,11 @@ class EventListener {
     private val supportedAxes = listOf<SupportedAxis>(
         SupportedAxis(MotionEvent.AXIS_X),
         SupportedAxis(MotionEvent.AXIS_Y, invert = true),
-        // Observed AXIS_Z corresponds to X-Axis of Right Thumbstick on Xbox Series X controller.
-        // Seems suspicious.
+        // Observed AXIS_Z corresponds to X-Axis of Right Thumbstick on Xbox Series X, Xbox One,
+        // DualShock 4 controllers.
         SupportedAxis(MotionEvent.AXIS_Z),
-        // Observed AXIS_RZ corresponds to Y-Axis of Right Thumbstick on Xbox Series X controller.
-        // Seems suspicious.
+        // Observed AXIS_RZ corresponds to Y-Axis of Right Thumbstick on Xbox Series X, Xbox One,
+        // DualShock 4 controllers.
         SupportedAxis(MotionEvent.AXIS_RZ, invert = true),
         SupportedAxis(MotionEvent.AXIS_HAT_X),
         SupportedAxis(MotionEvent.AXIS_HAT_Y, invert = true),

@@ -20,8 +20,9 @@ import kotlin.concurrent.thread
 
 class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var channel : MethodChannel
+  private lateinit var gamepads : ConnectionListener
+
   private val TAG = "GamepadsAndroidPlugin"
-  private val gamepads = ConnectionListener()
   private val events = EventListener()
 
   private fun listGamepads(): List<Map<String, String>>  {
@@ -38,7 +39,6 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
   // FlutterPlugin
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    Log.i(TAG, "onAttachedToEngine")
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "xyz.luan/gamepads")
     channel.setMethodCallHandler(this)
   }
@@ -61,8 +61,8 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   }
 
   fun onAttachedToActivityShared(activity: Activity) {
-    Log.i(TAG, "onAttachedToActivityShared")
     val compatibleActivity = activity as GamepadsCompatibleActivity
+    gamepads = ConnectionListener({ it: InputDevice -> compatibleActivity.isGamepadsInputDevice(it) })
     compatibleActivity.registerInputDeviceListener(gamepads, null)
     compatibleActivity.registerKeyEventHandler({ it: KeyEvent -> events.onKeyEvent(it, channel) })
     compatibleActivity.registerMotionEventHandler({ it: MotionEvent -> events.onMotionEvent(it, channel) })
