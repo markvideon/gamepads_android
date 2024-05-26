@@ -1,4 +1,4 @@
-package com.example.gamepads_android
+package dev.markvideon.gamepads_android
 
 import androidx.annotation.NonNull
 import android.app.Activity

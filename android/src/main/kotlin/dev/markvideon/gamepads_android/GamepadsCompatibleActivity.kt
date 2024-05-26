@@ -1,4 +1,4 @@
-package com.example.gamepads_android
+package dev.markvideon.gamepads_android
 
 import android.hardware.input.InputManager
 import android.os.Handler
