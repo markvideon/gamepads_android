@@ -20,14 +20,14 @@ import kotlin.concurrent.thread
 
 class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var channel : MethodChannel
-  private lateinit var gamepads : ConnectionListener
+  private lateinit var devices : DeviceListener
   private lateinit var events : EventListener
 
   private val TAG = "GamepadsAndroidPlugin"
 
   private fun listGamepads(): List<Map<String, String>>  {
     val results = mutableListOf<Map<String, String>>()
-    gamepads.getDevices().forEach({
+    devices.getDevices().forEach({
       results.add(mapOf(
         "id" to it.key.toString(),
         "name" to it.value.name
@@ -62,9 +62,9 @@ class GamepadsAndroidPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
   fun onAttachedToActivityShared(activity: Activity) {
     val compatibleActivity = activity as GamepadsCompatibleActivity
-    gamepads = ConnectionListener({ it: InputDevice -> compatibleActivity.isGamepadsInputDevice(it) })
-    events = EventListener({ it: Int -> gamepads.containsKey(it)})
-    compatibleActivity.registerInputDeviceListener(gamepads, null)
+    devices = DeviceListener({ it: InputDevice -> compatibleActivity.isGamepadsInputDevice(it) })
+    events = EventListener({ it: Int -> devices.containsKey(it)})
+    compatibleActivity.registerInputDeviceListener(devices, null)
     compatibleActivity.registerKeyEventHandler({ it: KeyEvent -> events.onKeyEvent(it, channel) })
     compatibleActivity.registerMotionEventHandler({ it: MotionEvent -> events.onMotionEvent(it, channel) })
   }
