@@ -9,7 +9,7 @@ import io.flutter.plugin.common.MethodChannel
 
 class SupportedAxis(val axisId: Int, val invert: Boolean = false)
 
-class EventListener(val isOwnedInputDevice: (deviceId: Int) -> Boolean) {
+class EventListener {
     private val TAG = "EventListener"
     private val axisEpisilon = 0.001
     private val lastAxisValue = mutableMapOf<Int, Float>()
@@ -29,9 +29,6 @@ class EventListener(val isOwnedInputDevice: (deviceId: Int) -> Boolean) {
     )
 
     fun onKeyEvent(keyEvent: KeyEvent, channel: MethodChannel): Boolean {
-        if (!isOwnedInputDevice(keyEvent.deviceId)) {
-            return false
-        }
         val arguments = mapOf(
             "gamepadId" to keyEvent.getDeviceId().toString(),
             "time" to keyEvent.getEventTime(),
@@ -44,9 +41,6 @@ class EventListener(val isOwnedInputDevice: (deviceId: Int) -> Boolean) {
     }
 
     fun onMotionEvent(motionEvent: MotionEvent, channel: MethodChannel): Boolean {
-        if (!isOwnedInputDevice(motionEvent.deviceId)) {
-            return false
-        }
         supportedAxes.forEach {
             reportAxis(motionEvent, channel, it.axisId, it.invert)
         }
