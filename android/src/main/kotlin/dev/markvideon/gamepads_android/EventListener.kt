@@ -6,6 +6,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 
 import io.flutter.plugin.common.MethodChannel
+import kotlin.math.abs
 
 class SupportedAxis(val axisId: Int, val invert: Boolean = false)
 
@@ -54,7 +55,7 @@ class EventListener {
         // No-op if threshold is not met
         if (lastAxisValue[axis] != null) {
             val lastValue = lastAxisValue[axis]!!
-            if (Math.abs(value - lastValue) < axisEpisilon) {
+            if (abs(value - lastValue) < axisEpisilon) {
                 return true;
             }
         }
