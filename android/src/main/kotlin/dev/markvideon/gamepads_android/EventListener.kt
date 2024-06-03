@@ -51,11 +51,13 @@ class EventListener {
         val multiplier = if (invert) -1 else 1
         val value = motionEvent.getAxisValue(axis) * multiplier
 
+        // ToDo: Consume batched events
+
         // No-op if threshold is not met
         if (lastAxisValue[axis] != null) {
             val lastValue = lastAxisValue[axis]!!
             if (Math.abs(value - lastValue) < axisEpisilon) {
-                return false;
+                return true;
             }
         }
         // Update last value
