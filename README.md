@@ -1,6 +1,6 @@
 # gamepads_android
 
-Note: This project will be migrated into the [gamepads monorepo](https://github.com/flame-engine/gamepads). 
+Note: This project has been migrated into the [gamepads monorepo](https://github.com/flame-engine/gamepads). 
 
 ## Getting Started
 
